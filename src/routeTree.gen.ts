@@ -9,38 +9,108 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as JugadoresRouteImport } from './routes/jugadores'
+import { Route as AjustesRouteImport } from './routes/ajustes'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ConvocatoriasIdRouteImport } from './routes/convocatorias.$id'
+import { Route as ConvocatoriasIdJugadorPlayerIdRouteImport } from './routes/convocatorias.$id.jugador.$playerId'
 
+const JugadoresRoute = JugadoresRouteImport.update({
+  id: '/jugadores',
+  path: '/jugadores',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AjustesRoute = AjustesRouteImport.update({
+  id: '/ajustes',
+  path: '/ajustes',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ConvocatoriasIdRoute = ConvocatoriasIdRouteImport.update({
+  id: '/convocatorias/$id',
+  path: '/convocatorias/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ConvocatoriasIdJugadorPlayerIdRoute =
+  ConvocatoriasIdJugadorPlayerIdRouteImport.update({
+    id: '/jugador/$playerId',
+    path: '/jugador/$playerId',
+    getParentRoute: () => ConvocatoriasIdRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/ajustes': typeof AjustesRoute
+  '/jugadores': typeof JugadoresRoute
+  '/convocatorias/$id': typeof ConvocatoriasIdRouteWithChildren
+  '/convocatorias/$id/jugador/$playerId': typeof ConvocatoriasIdJugadorPlayerIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/ajustes': typeof AjustesRoute
+  '/jugadores': typeof JugadoresRoute
+  '/convocatorias/$id': typeof ConvocatoriasIdRouteWithChildren
+  '/convocatorias/$id/jugador/$playerId': typeof ConvocatoriasIdJugadorPlayerIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/ajustes': typeof AjustesRoute
+  '/jugadores': typeof JugadoresRoute
+  '/convocatorias/$id': typeof ConvocatoriasIdRouteWithChildren
+  '/convocatorias/$id/jugador/$playerId': typeof ConvocatoriasIdJugadorPlayerIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/ajustes'
+    | '/jugadores'
+    | '/convocatorias/$id'
+    | '/convocatorias/$id/jugador/$playerId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/ajustes'
+    | '/jugadores'
+    | '/convocatorias/$id'
+    | '/convocatorias/$id/jugador/$playerId'
+  id:
+    | '__root__'
+    | '/'
+    | '/ajustes'
+    | '/jugadores'
+    | '/convocatorias/$id'
+    | '/convocatorias/$id/jugador/$playerId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AjustesRoute: typeof AjustesRoute
+  JugadoresRoute: typeof JugadoresRoute
+  ConvocatoriasIdRoute: typeof ConvocatoriasIdRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/jugadores': {
+      id: '/jugadores'
+      path: '/jugadores'
+      fullPath: '/jugadores'
+      preLoaderRoute: typeof JugadoresRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ajustes': {
+      id: '/ajustes'
+      path: '/ajustes'
+      fullPath: '/ajustes'
+      preLoaderRoute: typeof AjustesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,11 +118,40 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/convocatorias/$id': {
+      id: '/convocatorias/$id'
+      path: '/convocatorias/$id'
+      fullPath: '/convocatorias/$id'
+      preLoaderRoute: typeof ConvocatoriasIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/convocatorias/$id/jugador/$playerId': {
+      id: '/convocatorias/$id/jugador/$playerId'
+      path: '/jugador/$playerId'
+      fullPath: '/convocatorias/$id/jugador/$playerId'
+      preLoaderRoute: typeof ConvocatoriasIdJugadorPlayerIdRouteImport
+      parentRoute: typeof ConvocatoriasIdRoute
+    }
   }
 }
 
+interface ConvocatoriasIdRouteChildren {
+  ConvocatoriasIdJugadorPlayerIdRoute: typeof ConvocatoriasIdJugadorPlayerIdRoute
+}
+
+const ConvocatoriasIdRouteChildren: ConvocatoriasIdRouteChildren = {
+  ConvocatoriasIdJugadorPlayerIdRoute: ConvocatoriasIdJugadorPlayerIdRoute,
+}
+
+const ConvocatoriasIdRouteWithChildren = ConvocatoriasIdRoute._addFileChildren(
+  ConvocatoriasIdRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AjustesRoute: AjustesRoute,
+  JugadoresRoute: JugadoresRoute,
+  ConvocatoriasIdRoute: ConvocatoriasIdRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
