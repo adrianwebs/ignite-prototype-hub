@@ -287,7 +287,15 @@ function Heatmap({ callUpId }: { callUpId: string }) {
         <tbody>
           {players.map((p) => (
             <tr key={p.id}>
-              <td className="pr-2 whitespace-nowrap">{p.name}</td>
+              <td className="pr-2 whitespace-nowrap">
+                <Link
+                  to="/convocatorias/$id/jugador/$playerId"
+                  params={{ id: callUpId, playerId: p.id }}
+                  className="hover:text-primary hover:underline"
+                >
+                  {p.name}
+                </Link>
+              </td>
               {sess.map((s) => {
                 const r = recordsOf(s.id).find((x) => x.playerId === p.id);
                 const uaV = r ? ua(r.rpe, s.duration) : 0;
@@ -306,7 +314,13 @@ function Heatmap({ callUpId }: { callUpId: string }) {
                     className="size-6 text-center tabular-nums text-[10px] rounded"
                     style={{ background: color, color: "white" }}
                   >
-                    {uaV}
+                    <Link
+                      to="/convocatorias/$id/jugador/$playerId"
+                      params={{ id: callUpId, playerId: p.id }}
+                      className="block"
+                    >
+                      {uaV}
+                    </Link>
                   </td>
                 );
               })}
@@ -317,6 +331,7 @@ function Heatmap({ callUpId }: { callUpId: string }) {
     </div>
   );
 }
+
 
 function CargaTable({ callUpId }: { callUpId: string }) {
   const sess = sessionsOf(callUpId);
