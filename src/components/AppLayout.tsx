@@ -7,14 +7,17 @@ import {
   CalendarDays,
   Settings,
   Bell,
+  Smartphone,
 } from "lucide-react";
 import { ReactNode } from "react";
 
 const nav = [
   { to: "/", label: "Convocatorias", icon: CalendarDays },
   { to: "/jugadores", label: "Jugadores", icon: Users },
+  { to: "/portal", label: "Portal Jugador", icon: Smartphone },
   { to: "/ajustes", label: "Ajustes", icon: Settings },
 ];
+
 
 export function AppLayout({ children }: { children: ReactNode }) {
   const loc = useLocation();
