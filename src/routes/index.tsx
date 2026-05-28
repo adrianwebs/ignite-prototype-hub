@@ -120,3 +120,121 @@ function Page() {
     </AppLayout>
   );
 }
+
+function NuevaConvocatoriaDialog() {
+  const [open, setOpen] = useState(false);
+  const [selected, setSelected] = useState<string[]>([]);
+
+  const togglePlayer = (id: string) => {
+    setSelected((prev) =>
+      prev.includes(id) ? prev.filter((p) => p !== id) : [...prev, id],
+    );
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <button className="px-3 py-2 text-sm rounded-md bg-primary text-primary-foreground font-medium hover:opacity-90">
+          + Nueva convocatoria
+        </button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-[640px] max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Nueva convocatoria</DialogTitle>
+          <DialogDescription>
+            Define los datos de la concentración y selecciona los jugadores
+            convocados.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="grid gap-5 py-2">
+          <div className="grid gap-2">
+            <Label htmlFor="nc-name">Nombre</Label>
+            <Input
+              id="nc-name"
+              placeholder="Ej. Ventana Mundial — Junio 26"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="grid gap-2">
+              <Label htmlFor="nc-start">Fecha inicio</Label>
+              <Input id="nc-start" type="date" />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="nc-end">Fecha fin</Label>
+              <Input id="nc-end" type="date" />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="grid gap-2">
+              <Label htmlFor="nc-location">Sede</Label>
+              <Input id="nc-location" placeholder="Ej. CAR Las Rozas" />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="nc-type">Tipo</Label>
+              <Select>
+                <SelectTrigger id="nc-type">
+                  <SelectValue placeholder="Selecciona tipo" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="oficial">Competición oficial</SelectItem>
+                  <SelectItem value="amistoso">Amistosos</SelectItem>
+                  <SelectItem value="preparacion">Preparación</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="grid gap-2">
+            <Label htmlFor="nc-notes">Observaciones</Label>
+            <Textarea
+              id="nc-notes"
+              placeholder="Notas internas, objetivos de la concentración..."
+              rows={3}
+            />
+          </div>
+
+          <div className="grid gap-2">
+            <div className="flex items-center justify-between">
+              <Label>Jugadores convocados</Label>
+              <span className="text-xs text-muted-foreground tabular-nums">
+                {selected.length} / {players.length}
+              </span>
+            </div>
+            <div className="rounded-md border divide-y max-h-56 overflow-y-auto">
+              {players.map((p) => (
+                <label
+                  key={p.id}
+                  htmlFor={`nc-p-${p.id}`}
+                  className="flex items-center gap-3 px-3 py-2 hover:bg-muted/40 cursor-pointer"
+                >
+                  <Checkbox
+                    id={`nc-p-${p.id}`}
+                    checked={selected.includes(p.id)}
+                    onCheckedChange={() => togglePlayer(p.id)}
+                  />
+                  <span className="w-7 text-xs text-muted-foreground tabular-nums">
+                    {p.number}
+                  </span>
+                  <span className="flex-1 text-sm">{p.name}</span>
+                  <span className="text-xs text-muted-foreground">
+                    {p.position}
+                  </span>
+                </label>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <DialogFooter>
+          <DialogClose asChild>
+            <Button variant="outline">Cancelar</Button>
+          </DialogClose>
+          <Button type="button">Crear convocatoria</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
