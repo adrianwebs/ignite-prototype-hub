@@ -43,9 +43,9 @@ const ConvocatoriasIdRoute = ConvocatoriasIdRouteImport.update({
 } as any)
 const ConvocatoriasIdJugadorPlayerIdRoute =
   ConvocatoriasIdJugadorPlayerIdRouteImport.update({
-    id: '/jugador/$playerId',
-    path: '/jugador/$playerId',
-    getParentRoute: () => ConvocatoriasIdRoute,
+    id: '/convocatorias/$id/jugador/$playerId',
+    path: '/convocatorias/$id/jugador/$playerId',
+    getParentRoute: () => rootRouteImport,
   } as any)
 
 export interface FileRoutesByFullPath {
