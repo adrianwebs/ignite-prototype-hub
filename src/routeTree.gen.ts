@@ -43,9 +43,9 @@ const ConvocatoriasIdRoute = ConvocatoriasIdRouteImport.update({
 } as any)
 const ConvocatoriasIdJugadorPlayerIdRoute =
   ConvocatoriasIdJugadorPlayerIdRouteImport.update({
-    id: '/convocatorias/$id/jugador/$playerId',
-    path: '/convocatorias/$id/jugador/$playerId',
-    getParentRoute: () => rootRouteImport,
+    id: '/jugador/$playerId',
+    path: '/jugador/$playerId',
+    getParentRoute: () => ConvocatoriasIdRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
@@ -53,7 +53,7 @@ export interface FileRoutesByFullPath {
   '/ajustes': typeof AjustesRoute
   '/jugadores': typeof JugadoresRoute
   '/portal': typeof PortalRoute
-  '/convocatorias/$id': typeof ConvocatoriasIdRouteWithChildren
+  '/convocatorias/$id': typeof ConvocatoriasIdRoute
   '/convocatorias/$id/jugador/$playerId': typeof ConvocatoriasIdJugadorPlayerIdRoute
 }
 export interface FileRoutesByTo {
@@ -177,13 +177,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
