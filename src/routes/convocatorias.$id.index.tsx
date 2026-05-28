@@ -33,7 +33,7 @@ import {
 import { useState } from "react";
 import { AlertTriangle, Download } from "lucide-react";
 
-export const Route = createFileRoute("/convocatorias/$id")({
+export const Route = createFileRoute("/convocatorias/$id/")({
   head: ({ params }) => ({
     meta: [
       { title: `Convocatoria · ${params.id} · SE-FS Load` },

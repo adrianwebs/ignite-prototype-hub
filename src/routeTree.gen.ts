@@ -13,7 +13,7 @@ import { Route as PortalRouteImport } from './routes/portal'
 import { Route as JugadoresRouteImport } from './routes/jugadores'
 import { Route as AjustesRouteImport } from './routes/ajustes'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as ConvocatoriasIdRouteImport } from './routes/convocatorias.$id'
+import { Route as ConvocatoriasIdIndexRouteImport } from './routes/convocatorias.$id.index'
 import { Route as ConvocatoriasIdJugadorPlayerIdRouteImport } from './routes/convocatorias.$id.jugador.$playerId'
 
 const PortalRoute = PortalRouteImport.update({
@@ -36,9 +36,9 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ConvocatoriasIdRoute = ConvocatoriasIdRouteImport.update({
-  id: '/convocatorias/$id',
-  path: '/convocatorias/$id',
+const ConvocatoriasIdIndexRoute = ConvocatoriasIdIndexRouteImport.update({
+  id: '/convocatorias/$id/',
+  path: '/convocatorias/$id/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ConvocatoriasIdJugadorPlayerIdRoute =
@@ -53,7 +53,7 @@ export interface FileRoutesByFullPath {
   '/ajustes': typeof AjustesRoute
   '/jugadores': typeof JugadoresRoute
   '/portal': typeof PortalRoute
-  '/convocatorias/$id': typeof ConvocatoriasIdRouteWithChildren
+  '/convocatorias/$id/': typeof ConvocatoriasIdIndexRoute
   '/convocatorias/$id/jugador/$playerId': typeof ConvocatoriasIdJugadorPlayerIdRoute
 }
 export interface FileRoutesByTo {
@@ -61,7 +61,7 @@ export interface FileRoutesByTo {
   '/ajustes': typeof AjustesRoute
   '/jugadores': typeof JugadoresRoute
   '/portal': typeof PortalRoute
-  '/convocatorias/$id': typeof ConvocatoriasIdRouteWithChildren
+  '/convocatorias/$id': typeof ConvocatoriasIdIndexRoute
   '/convocatorias/$id/jugador/$playerId': typeof ConvocatoriasIdJugadorPlayerIdRoute
 }
 export interface FileRoutesById {
@@ -70,7 +70,7 @@ export interface FileRoutesById {
   '/ajustes': typeof AjustesRoute
   '/jugadores': typeof JugadoresRoute
   '/portal': typeof PortalRoute
-  '/convocatorias/$id': typeof ConvocatoriasIdRouteWithChildren
+  '/convocatorias/$id/': typeof ConvocatoriasIdIndexRoute
   '/convocatorias/$id/jugador/$playerId': typeof ConvocatoriasIdJugadorPlayerIdRoute
 }
 export interface FileRouteTypes {
@@ -80,7 +80,7 @@ export interface FileRouteTypes {
     | '/ajustes'
     | '/jugadores'
     | '/portal'
-    | '/convocatorias/$id'
+    | '/convocatorias/$id/'
     | '/convocatorias/$id/jugador/$playerId'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -96,7 +96,7 @@ export interface FileRouteTypes {
     | '/ajustes'
     | '/jugadores'
     | '/portal'
-    | '/convocatorias/$id'
+    | '/convocatorias/$id/'
     | '/convocatorias/$id/jugador/$playerId'
   fileRoutesById: FileRoutesById
 }
@@ -105,7 +105,7 @@ export interface RootRouteChildren {
   AjustesRoute: typeof AjustesRoute
   JugadoresRoute: typeof JugadoresRoute
   PortalRoute: typeof PortalRoute
-  ConvocatoriasIdRoute: typeof ConvocatoriasIdRouteWithChildren
+  ConvocatoriasIdIndexRoute: typeof ConvocatoriasIdIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -138,11 +138,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/convocatorias/$id': {
-      id: '/convocatorias/$id'
+    '/convocatorias/$id/': {
+      id: '/convocatorias/$id/'
       path: '/convocatorias/$id'
-      fullPath: '/convocatorias/$id'
-      preLoaderRoute: typeof ConvocatoriasIdRouteImport
+      fullPath: '/convocatorias/$id/'
+      preLoaderRoute: typeof ConvocatoriasIdIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/convocatorias/$id/jugador/$playerId': {
@@ -155,25 +155,23 @@ declare module '@tanstack/react-router' {
   }
 }
 
-interface ConvocatoriasIdRouteChildren {
-  ConvocatoriasIdJugadorPlayerIdRoute: typeof ConvocatoriasIdJugadorPlayerIdRoute
-}
-
-const ConvocatoriasIdRouteChildren: ConvocatoriasIdRouteChildren = {
-  ConvocatoriasIdJugadorPlayerIdRoute: ConvocatoriasIdJugadorPlayerIdRoute,
-}
-
-const ConvocatoriasIdRouteWithChildren = ConvocatoriasIdRoute._addFileChildren(
-  ConvocatoriasIdRouteChildren,
-)
-
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AjustesRoute: AjustesRoute,
   JugadoresRoute: JugadoresRoute,
   PortalRoute: PortalRoute,
-  ConvocatoriasIdRoute: ConvocatoriasIdRouteWithChildren,
+  ConvocatoriasIdIndexRoute: ConvocatoriasIdIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
