@@ -155,13 +155,24 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface ConvocatoriasIdRouteChildren {
+  ConvocatoriasIdJugadorPlayerIdRoute: typeof ConvocatoriasIdJugadorPlayerIdRoute
+}
+
+const ConvocatoriasIdRouteChildren: ConvocatoriasIdRouteChildren = {
+  ConvocatoriasIdJugadorPlayerIdRoute: ConvocatoriasIdJugadorPlayerIdRoute,
+}
+
+const ConvocatoriasIdRouteWithChildren = ConvocatoriasIdRoute._addFileChildren(
+  ConvocatoriasIdRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AjustesRoute: AjustesRoute,
   JugadoresRoute: JugadoresRoute,
   PortalRoute: PortalRoute,
-  ConvocatoriasIdRoute: ConvocatoriasIdRoute,
-  ConvocatoriasIdJugadorPlayerIdRoute: ConvocatoriasIdJugadorPlayerIdRoute,
+  ConvocatoriasIdRoute: ConvocatoriasIdRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
