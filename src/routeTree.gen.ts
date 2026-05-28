@@ -43,9 +43,9 @@ const ConvocatoriasIdIndexRoute = ConvocatoriasIdIndexRouteImport.update({
 } as any)
 const ConvocatoriasIdJugadorPlayerIdRoute =
   ConvocatoriasIdJugadorPlayerIdRouteImport.update({
-    id: '/jugador/$playerId',
-    path: '/jugador/$playerId',
-    getParentRoute: () => ConvocatoriasIdRoute,
+    id: '/convocatorias/$id/jugador/$playerId',
+    path: '/convocatorias/$id/jugador/$playerId',
+    getParentRoute: () => rootRouteImport,
   } as any)
 
 export interface FileRoutesByFullPath {
@@ -106,6 +106,7 @@ export interface RootRouteChildren {
   JugadoresRoute: typeof JugadoresRoute
   PortalRoute: typeof PortalRoute
   ConvocatoriasIdIndexRoute: typeof ConvocatoriasIdIndexRoute
+  ConvocatoriasIdJugadorPlayerIdRoute: typeof ConvocatoriasIdJugadorPlayerIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -147,10 +148,10 @@ declare module '@tanstack/react-router' {
     }
     '/convocatorias/$id/jugador/$playerId': {
       id: '/convocatorias/$id/jugador/$playerId'
-      path: '/jugador/$playerId'
+      path: '/convocatorias/$id/jugador/$playerId'
       fullPath: '/convocatorias/$id/jugador/$playerId'
       preLoaderRoute: typeof ConvocatoriasIdJugadorPlayerIdRouteImport
-      parentRoute: typeof ConvocatoriasIdRoute
+      parentRoute: typeof rootRouteImport
     }
   }
 }
@@ -161,6 +162,7 @@ const rootRouteChildren: RootRouteChildren = {
   JugadoresRoute: JugadoresRoute,
   PortalRoute: PortalRoute,
   ConvocatoriasIdIndexRoute: ConvocatoriasIdIndexRoute,
+  ConvocatoriasIdJugadorPlayerIdRoute: ConvocatoriasIdJugadorPlayerIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
