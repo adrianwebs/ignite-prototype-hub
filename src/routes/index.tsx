@@ -53,9 +53,7 @@ function Page() {
               Selecciona una concentración para acceder a su dashboard de carga.
             </p>
           </div>
-          <button className="px-3 py-2 text-sm rounded-md bg-primary text-primary-foreground font-medium hover:opacity-90">
-            + Nueva convocatoria
-          </button>
+          <NuevaConvocatoriaDialog />
         </div>
 
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
