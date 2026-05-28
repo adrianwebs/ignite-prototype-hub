@@ -53,7 +53,7 @@ export interface FileRoutesByFullPath {
   '/ajustes': typeof AjustesRoute
   '/jugadores': typeof JugadoresRoute
   '/portal': typeof PortalRoute
-  '/convocatorias/$id': typeof ConvocatoriasIdRoute
+  '/convocatorias/$id': typeof ConvocatoriasIdRouteWithChildren
   '/convocatorias/$id/jugador/$playerId': typeof ConvocatoriasIdJugadorPlayerIdRoute
 }
 export interface FileRoutesByTo {
@@ -61,7 +61,7 @@ export interface FileRoutesByTo {
   '/ajustes': typeof AjustesRoute
   '/jugadores': typeof JugadoresRoute
   '/portal': typeof PortalRoute
-  '/convocatorias/$id': typeof ConvocatoriasIdRouteWithChildren
+  '/convocatorias/$id': typeof ConvocatoriasIdRoute
   '/convocatorias/$id/jugador/$playerId': typeof ConvocatoriasIdJugadorPlayerIdRoute
 }
 export interface FileRoutesById {
