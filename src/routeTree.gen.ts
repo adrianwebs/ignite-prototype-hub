@@ -70,7 +70,7 @@ export interface FileRoutesById {
   '/ajustes': typeof AjustesRoute
   '/jugadores': typeof JugadoresRoute
   '/portal': typeof PortalRoute
-  '/convocatorias/$id': typeof ConvocatoriasIdRoute
+  '/convocatorias/$id': typeof ConvocatoriasIdRouteWithChildren
   '/convocatorias/$id/jugador/$playerId': typeof ConvocatoriasIdJugadorPlayerIdRoute
 }
 export interface FileRouteTypes {
@@ -105,7 +105,8 @@ export interface RootRouteChildren {
   AjustesRoute: typeof AjustesRoute
   JugadoresRoute: typeof JugadoresRoute
   PortalRoute: typeof PortalRoute
-  ConvocatoriasIdRoute: typeof ConvocatoriasIdRouteWithChildren
+  ConvocatoriasIdRoute: typeof ConvocatoriasIdRoute
+  ConvocatoriasIdJugadorPlayerIdRoute: typeof ConvocatoriasIdJugadorPlayerIdRoute
 }
 
 declare module '@tanstack/react-router' {
