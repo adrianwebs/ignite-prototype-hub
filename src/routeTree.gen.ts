@@ -105,8 +105,7 @@ export interface RootRouteChildren {
   AjustesRoute: typeof AjustesRoute
   JugadoresRoute: typeof JugadoresRoute
   PortalRoute: typeof PortalRoute
-  ConvocatoriasIdRoute: typeof ConvocatoriasIdRoute
-  ConvocatoriasIdJugadorPlayerIdRoute: typeof ConvocatoriasIdJugadorPlayerIdRoute
+  ConvocatoriasIdRoute: typeof ConvocatoriasIdRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
@@ -148,10 +147,10 @@ declare module '@tanstack/react-router' {
     }
     '/convocatorias/$id/jugador/$playerId': {
       id: '/convocatorias/$id/jugador/$playerId'
-      path: '/jugador/$playerId'
+      path: '/convocatorias/$id/jugador/$playerId'
       fullPath: '/convocatorias/$id/jugador/$playerId'
       preLoaderRoute: typeof ConvocatoriasIdJugadorPlayerIdRouteImport
-      parentRoute: typeof ConvocatoriasIdRoute
+      parentRoute: typeof rootRouteImport
     }
   }
 }
