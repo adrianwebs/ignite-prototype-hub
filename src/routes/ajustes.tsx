@@ -1,9 +1,12 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { useEffect } from "react";
 import { AppLayout } from "@/components/AppLayout";
 
-export const Route = createFileRoute("/ajustes")({
-  head: () => ({ meta: [{ title: "Ajustes · SE-FS Load" }] }),
-  component: () => (
+export default function Ajustes() {
+  useEffect(() => {
+    document.title = "Ajustes · SE-FS Load";
+  }, []);
+
+  return (
     <AppLayout>
       <div className="px-8 py-8 max-w-2xl">
         <h1 className="text-2xl font-semibold tracking-tight">Ajustes</h1>
@@ -46,5 +49,5 @@ export const Route = createFileRoute("/ajustes")({
         </div>
       </div>
     </AppLayout>
-  ),
-});
+  );
+}

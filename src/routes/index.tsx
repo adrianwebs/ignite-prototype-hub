@@ -1,5 +1,5 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
 import { AppLayout } from "@/components/AppLayout";
 import { callUps, sessionsOf, recordsOf, ua, avg, players } from "@/lib/mock-data";
 import { ArrowRight, Calendar, MapPin, Users } from "lucide-react";
@@ -26,21 +26,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-export const Route = createFileRoute("/")({
-  head: () => ({
-    meta: [
-      { title: "Convocatorias · SE-FS Load" },
-      {
-        name: "description",
-        content:
-          "Listado de convocatorias de la Selección Española de Fútbol Sala.",
-      },
-    ],
-  }),
-  component: Page,
-});
+export default function Convocatorias() {
+  useEffect(() => {
+    document.title = "Convocatorias · SE-FS Load";
+  }, []);
 
-function Page() {
   return (
     <AppLayout>
       <div className="px-8 py-8">
@@ -68,8 +58,7 @@ function Page() {
             return (
               <Link
                 key={c.id}
-                to="/convocatorias/$id"
-                params={{ id: c.id }}
+                to={`/convocatorias/${c.id}`}
                 className="rounded-lg border bg-card p-5 hover:border-primary/60 transition-colors group"
               >
                 <div className="flex items-center justify-between">

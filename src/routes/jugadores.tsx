@@ -1,5 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AppLayout } from "@/components/AppLayout";
 import { players } from "@/lib/mock-data";
 import {
@@ -23,12 +22,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-export const Route = createFileRoute("/jugadores")({
-  head: () => ({ meta: [{ title: "Jugadores · SE-FS Load" }] }),
-  component: Page,
-});
+export default function Jugadores() {
+  useEffect(() => {
+    document.title = "Jugadores · SE-FS Load";
+  }, []);
 
-function Page() {
   return (
     <AppLayout>
       <div className="px-8 py-8">
@@ -124,4 +122,3 @@ function NuevoJugadorDialog() {
     </Dialog>
   );
 }
-

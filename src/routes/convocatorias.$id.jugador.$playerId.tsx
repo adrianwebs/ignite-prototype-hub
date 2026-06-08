@@ -1,4 +1,5 @@
-import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { Link, useParams } from "react-router-dom";
+import { useEffect } from "react";
 import { AppLayout } from "@/components/AppLayout";
 import { MetricCard } from "@/components/MetricCard";
 import {
@@ -33,28 +34,7 @@ import {
 } from "recharts";
 import { AlertTriangle } from "lucide-react";
 
-export const Route = createFileRoute("/convocatorias/$id/jugador/$playerId")({
-  head: ({ params }) => ({
-    meta: [{ title: `Jugador ${params.playerId} · SE-FS Load` }],
-  }),
-  loader: ({ params }) => {
-    const c = getCallUp(params.id);
-    const p = players.find((x) => x.id === params.playerId);
-    if (!c || !p) throw notFound();
-    return { callUp: c, player: p };
-  },
-  notFoundComponent: () => (
-    <AppLayout>
-      <div className="p-10 text-muted-foreground">No encontrado.</div>
-    </AppLayout>
-  ),
-  errorComponent: ({ error }) => (
-    <AppLayout>
-      <div className="p-10 text-destructive">{error.message}</div>
-    </AppLayout>
-  ),
-  component: Page,
-});
+// Removed Route for react-router-dom migration
 
 const tooltipStyle = {
   background: "var(--popover)",
@@ -63,8 +43,26 @@ const tooltipStyle = {
   fontSize: 12,
 };
 
-function Page() {
-  const { callUp, player } = Route.useLoaderData();
+export default function Page() {
+  const { id, playerId } = useParams<{ id: string; playerId: string }>();
+  const callUp = id ? getCallUp(id) : undefined;
+  const player = players.find((x) => x.id === playerId);
+
+  useEffect(() => {
+    if (player) {
+      document.title = `Jugador ${player.name} · SE-FS Load`;
+    } else {
+      document.title = "No encontrado · SE-FS Load";
+    }
+  }, [player]);
+
+  if (!callUp || !player) {
+    return (
+      <AppLayout>
+        <div className="p-10 text-muted-foreground">No encontrado.</div>
+      </AppLayout>
+    );
+  }
   const sess = sessionsOf(callUp.id);
 
   // SOLO registros de ESTE jugador en ESTA convocatoria
@@ -117,8 +115,7 @@ function Page() {
     <AppLayout>
       <div className="px-8 py-6 border-b">
         <Link
-          to="/convocatorias/$id"
-          params={{ id: callUp.id }}
+          to={`/convocatorias/${callUp.id}`}
           className="text-xs text-muted-foreground hover:text-foreground"
         >
           ← {callUp.name}

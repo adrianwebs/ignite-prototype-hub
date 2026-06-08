@@ -1,5 +1,5 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { Link } from "react-router-dom";
+import { useMemo, useState, useEffect } from "react";
 import {
   players,
   callUps,
@@ -34,20 +34,6 @@ import {
   Dumbbell,
 } from "lucide-react";
 
-export const Route = createFileRoute("/portal")({
-  head: () => ({
-    meta: [
-      { title: "Portal del Jugador · SE-FS Load" },
-      {
-        name: "description",
-        content:
-          "Portal de auto-reporte de RPE y fatiga para jugadores de la Selección Española de Fútbol Sala.",
-      },
-    ],
-  }),
-  component: PortalPage,
-});
-
 type Submission = {
   sessionId: string;
   playerId: string;
@@ -63,7 +49,11 @@ const tooltipStyle = {
   fontSize: 12,
 };
 
-function PortalPage() {
+export default function PortalPage() {
+  useEffect(() => {
+    document.title = "Portal del Jugador · SE-FS Load";
+  }, []);
+
   const [playerId, setPlayerId] = useState<string | null>(null);
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);

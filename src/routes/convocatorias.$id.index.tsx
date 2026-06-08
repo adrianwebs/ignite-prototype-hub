@@ -1,4 +1,5 @@
-import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { Link, useParams } from "react-router-dom";
+import { useEffect } from "react";
 import { AppLayout } from "@/components/AppLayout";
 import { MetricCard } from "@/components/MetricCard";
 import {
@@ -33,35 +34,29 @@ import {
 import { useState } from "react";
 import { AlertTriangle, Download } from "lucide-react";
 
-export const Route = createFileRoute("/convocatorias/$id/")({
-  head: ({ params }) => ({
-    meta: [
-      { title: `Convocatoria · ${params.id} · SE-FS Load` },
-      { name: "description", content: "Dashboard de control de carga." },
-    ],
-  }),
-  loader: ({ params }) => {
-    const c = getCallUp(params.id);
-    if (!c) throw notFound();
-    return { callUp: c };
-  },
-  notFoundComponent: () => (
-    <AppLayout>
-      <div className="p-10 text-muted-foreground">Convocatoria no encontrada.</div>
-    </AppLayout>
-  ),
-  errorComponent: ({ error }) => (
-    <AppLayout>
-      <div className="p-10 text-destructive">{error.message}</div>
-    </AppLayout>
-  ),
-  component: Page,
-});
+// Removed createFileRoute for react-router-dom migration
 
 type Tab = "resumen" | "carga" | "ratio" | "sesiones" | "jugadores";
 
-function Page() {
-  const { callUp } = Route.useLoaderData();
+export default function Page() {
+  const { id } = useParams<{ id: string }>();
+  const callUp = id ? getCallUp(id) : undefined;
+
+  useEffect(() => {
+    if (callUp) {
+      document.title = `Convocatoria · ${callUp.name} · SE-FS Load`;
+    } else {
+      document.title = "Convocatoria no encontrada · SE-FS Load";
+    }
+  }, [callUp]);
+
+  if (!callUp) {
+    return (
+      <AppLayout>
+        <div className="p-10 text-muted-foreground">Convocatoria no encontrada.</div>
+      </AppLayout>
+    );
+  }
   const [tab, setTab] = useState<Tab>("resumen");
   const sess = sessionsOf(callUp.id);
 
@@ -289,8 +284,7 @@ function Heatmap({ callUpId }: { callUpId: string }) {
             <tr key={p.id}>
               <td className="pr-2 whitespace-nowrap">
                 <Link
-                  to="/convocatorias/$id/jugador/$playerId"
-                  params={{ id: callUpId, playerId: p.id }}
+                  to={`/convocatorias/${callUpId}/jugador/${p.id}`}
                   className="hover:text-primary hover:underline"
                 >
                   {p.name}
@@ -315,8 +309,7 @@ function Heatmap({ callUpId }: { callUpId: string }) {
                     style={{ background: color, color: "white" }}
                   >
                     <Link
-                      to="/convocatorias/$id/jugador/$playerId"
-                      params={{ id: callUpId, playerId: p.id }}
+                      to={`/convocatorias/${callUpId}/jugador/${p.id}`}
                       className="block"
                     >
                       {uaV}
@@ -525,8 +518,7 @@ function PlayersGrid({ callUpId }: { callUpId: string }) {
         return (
           <Link
             key={p.id}
-            to="/convocatorias/$id/jugador/$playerId"
-            params={{ id: callUpId, playerId: p.id }}
+            to={`/convocatorias/${callUpId}/jugador/${p.id}`}
             className="rounded-lg border bg-card p-4 hover:border-primary/60 transition-colors"
           >
             <div className="flex items-center justify-between">
