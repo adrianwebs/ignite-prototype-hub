@@ -72,14 +72,18 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
+      { title: "Control de Carga SE-FS" },
+      { name: "description", content: "Control de Carga plataforma Carlos Serrano" },
       { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { property: "og:title", content: "Control de Carga SE-FS" },
+      { property: "og:description", content: "Control de Carga plataforma Carlos Serrano" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:title", content: "Control de Carga SE-FS" },
+      { name: "twitter:description", content: "Control de Carga plataforma Carlos Serrano" },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/c32cedcd-cf24-4111-83a7-f8963cb41f23/id-preview-2cfcba21--9adf94e6-bc77-4e18-9f88-a1831a035e1e.lovable.app-1780914794683.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/c32cedcd-cf24-4111-83a7-f8963cb41f23/id-preview-2cfcba21--9adf94e6-bc77-4e18-9f88-a1831a035e1e.lovable.app-1780914794683.png" },
     ],
     links: [
       {
