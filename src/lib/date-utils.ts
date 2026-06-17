@@ -1,0 +1,111 @@
+const MONTHS_MAP: Record<string, string> = {
+  jan: "01", feb: "02", mar: "03", apr: "04", may: "05", jun: "06",
+  jul: "07", aug: "08", sep: "09", oct: "10", nov: "11", dec: "12",
+  ene: "01", abr: "04", ago: "08", dic: "12",
+  january: "01", february: "02", march: "03", april: "04", june: "06",
+  july: "07", august: "08", september: "09", october: "10", november: "11", december: "12",
+  enero: "01", febrero: "02", marzo: "03", abril: "04", mayo: "05", junio: "06",
+  julio: "07", agosto: "08", septiembre: "09", octubre: "10", noviembre: "11", diciembre: "12"
+};
+
+/**
+ * Normalizes any date string (ISO, Spanish dd/mm/yyyy, or verbose Google Apps Script date)
+ * into a standard ISO date string format (yyyy-MM-dd).
+ */
+export function parseToIsoDate(raw: string): string {
+  if (!raw) return "";
+  let trimmed = raw.trim();
+
+  // Remove timezone name in parentheses at the end if present (common in Apps Script outputs)
+  trimmed = trimmed.replace(/\s*\([^)]*\)\s*$/, "");
+
+  // 1. Already ISO yyyy-mm-dd
+  if (/^\d{4}-\d{2}-\d{2}/.test(trimmed)) {
+    return trimmed.slice(0, 10);
+  }
+
+  // 2. dd/mm/yyyy or d/m/yyyy (with optional time)
+  const slashMatch = trimmed.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  if (slashMatch) {
+    const [, d, m, y] = slashMatch;
+    return `${y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`;
+  }
+
+  // 3. yyyy/mm/dd or yyyy/m/d (with optional time)
+  const yyyySlashMatch = trimmed.match(/^(\d{4})\/(\d{1,2})\/(\d{1,2})/);
+  if (yyyySlashMatch) {
+    const [, y, m, d] = yyyySlashMatch;
+    return `${y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`;
+  }
+
+  // 4. Robust month-based parsing for verbose Spanish/English dates
+  const yearMatch = trimmed.match(/\b(\d{4})\b/);
+  if (yearMatch) {
+    const yearStr = yearMatch[1];
+    const words = trimmed.toLowerCase()
+      .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // remove accents
+      .split(/[^a-z0-9]+/);
+    
+    let month = null;
+    for (let i = 0; i < words.length; i++) {
+      const w = words[i];
+      if (MONTHS_MAP[w]) {
+        month = MONTHS_MAP[w];
+        break;
+      }
+      const three = w.slice(0, 3);
+      if (MONTHS_MAP[three]) {
+        month = MONTHS_MAP[three];
+        break;
+      }
+    }
+
+    if (month) {
+      const dayCandidates = words
+        .map((w, idx) => ({ val: parseInt(w, 10), idx }))
+        .filter(item => !isNaN(item.val) && item.val > 0 && item.val <= 31 && item.idx !== words.indexOf(yearStr));
+
+      if (dayCandidates.length > 0) {
+        const dayStr = String(dayCandidates[0].val).padStart(2, "0");
+        return `${yearStr}-${month}-${dayStr}`;
+      }
+    }
+  }
+
+  // 5. Fallback: standard JavaScript Date parsing
+  const d = new Date(trimmed);
+  if (!isNaN(d.getTime())) {
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  }
+
+  return trimmed;
+}
+
+/**
+ * Format a date string to Spanish dd/MM/yyyy.
+ */
+export function formatDateSpanish(dateStr: string): string {
+  if (!dateStr) return "";
+  const iso = parseToIsoDate(dateStr);
+  if (/^\d{4}-\d{2}-\d{2}$/.test(iso)) {
+    const [y, m, d] = iso.split("-");
+    return `${d}/${m}/${y}`;
+  }
+  return dateStr;
+}
+
+/**
+ * Format a date string to Spanish dd/MM.
+ */
+export function formatDateShort(dateStr: string): string {
+  if (!dateStr) return "";
+  const iso = parseToIsoDate(dateStr);
+  if (/^\d{4}-\d{2}-\d{2}$/.test(iso)) {
+    const [, m, d] = iso.split("-");
+    return `${d}/${m}`;
+  }
+  return dateStr;
+}

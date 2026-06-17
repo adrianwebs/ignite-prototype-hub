@@ -33,9 +33,7 @@ export default function Jugadores() {
         <div className="flex items-end justify-between mb-6">
           <div>
             <h1 className="text-2xl font-semibold tracking-tight">Jugadores</h1>
-            <p className="text-sm text-muted-foreground mt-1">
-              Plantilla actual de la Selección.
-            </p>
+            <p className="text-sm text-muted-foreground mt-1">Plantilla actual de la Selección.</p>
           </div>
           <NuevoJugadorDialog />
         </div>
@@ -78,22 +76,13 @@ function NuevoJugadorDialog() {
         <div className="grid gap-5 py-2">
           <div className="grid gap-2">
             <Label htmlFor="nj-name">Nombre completo</Label>
-            <Input
-              id="nj-name"
-              placeholder="Ej. Miguel Andrés"
-            />
+            <Input id="nj-name" placeholder="Ej. Miguel Andrés" />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="grid gap-2">
               <Label htmlFor="nj-number">Dorsal</Label>
-              <Input
-                id="nj-number"
-                type="number"
-                min={1}
-                max={99}
-                placeholder="Ej. 15"
-              />
+              <Input id="nj-number" type="number" min={1} max={99} placeholder="Ej. 15" />
             </div>
             <div className="grid gap-2">
               <Label htmlFor="nj-position">Posición</Label>

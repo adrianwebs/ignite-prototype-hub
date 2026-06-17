@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { useMemo, useState, useEffect } from "react";
+import { getLoadThresholds } from "@/lib/store";
 import {
   players,
   callUps,
@@ -60,10 +61,7 @@ export default function PortalPage() {
 
   const player = players.find((p) => p.id === playerId) ?? null;
   const currentCallUp = callUps.find((c) => c.status === "En curso") ?? callUps[0];
-  const sess = useMemo(
-    () => sessionsOf(currentCallUp.id),
-    [currentCallUp.id],
-  );
+  const sess = useMemo(() => sessionsOf(currentCallUp.id), [currentCallUp.id]);
 
   if (!player) {
     return (
@@ -84,8 +82,7 @@ export default function PortalPage() {
           onSubmit={(rpe, fatigue) => {
             setSubmissions((prev) => [
               ...prev.filter(
-                (s) =>
-                  !(s.sessionId === activeSession.id && s.playerId === player.id),
+                (s) => !(s.sessionId === activeSession.id && s.playerId === player.id),
               ),
               {
                 sessionId: activeSession.id,
@@ -146,9 +143,7 @@ function LoginScreen({ onSelect }: { onSelect: (id: string) => void }) {
           SE
         </div>
         <h1 className="mt-4 text-xl font-semibold">Portal del Jugador</h1>
-        <p className="text-xs text-muted-foreground mt-1">
-          Selecciona tu perfil para acceder
-        </p>
+        <p className="text-xs text-muted-foreground mt-1">Selecciona tu perfil para acceder</p>
       </div>
 
       <div className="space-y-2 flex-1">
@@ -200,12 +195,8 @@ function HomeScreen({
 
   // personal history (mock + new submissions)
   const history = pastSessions.map((s) => {
-    const sub = submissions.find(
-      (x) => x.sessionId === s.id && x.playerId === player.id,
-    );
-    const baseRec = records.find(
-      (r) => r.sessionId === s.id && r.playerId === player.id,
-    );
+    const sub = submissions.find((x) => x.sessionId === s.id && x.playerId === player.id);
+    const baseRec = records.find((r) => r.sessionId === s.id && r.playerId === player.id);
     const rpe = sub?.rpe ?? baseRec?.rpe ?? 0;
     const fat = sub?.fatigue ?? baseRec?.fatigue ?? 0;
     return {
@@ -222,6 +213,7 @@ function HomeScreen({
   const fatAvg = avg(history.map((h) => h.fatiga));
   const uaTot = history.reduce((a, b) => a + b.ua, 0);
   const status = loadStatus(Math.max(0, ...history.map((h) => h.ua)));
+  const { optimo, moderado } = getLoadThresholds();
 
   return (
     <div className="pb-6">
@@ -259,9 +251,7 @@ function HomeScreen({
         <section className="rounded-2xl border bg-card p-4 shadow-sm">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-sm font-semibold">Sesiones de hoy</h2>
-            <span className="text-[10px] text-muted-foreground tabular-nums">
-              {today}
-            </span>
+            <span className="text-[10px] text-muted-foreground tabular-nums">{today}</span>
           </div>
           {todaySessions.length === 0 && (
             <div className="text-xs text-muted-foreground py-4 text-center">
@@ -306,9 +296,7 @@ function HomeScreen({
                   {done ? (
                     <CheckCircle2 className="size-5 text-[color:var(--success)]" />
                   ) : (
-                    <span className="text-[11px] font-medium text-primary">
-                      Reportar →
-                    </span>
+                    <span className="text-[11px] font-medium text-primary">Reportar →</span>
                   )}
                 </button>
               );
@@ -318,7 +306,11 @@ function HomeScreen({
 
         {/* stats */}
         <section className="grid grid-cols-3 gap-2">
-          <Stat label="RPE medio" value={rpeAvg.toFixed(1)} icon={<Activity className="size-3.5" />} />
+          <Stat
+            label="RPE medio"
+            value={rpeAvg.toFixed(1)}
+            icon={<Activity className="size-3.5" />}
+          />
           <Stat label="Fatiga" value={fatAvg.toFixed(1)} icon={<Flame className="size-3.5" />} />
           <Stat
             label="UA máx"
@@ -339,8 +331,20 @@ function HomeScreen({
               <XAxis dataKey="label" tick={{ fontSize: 10, fill: "var(--muted-foreground)" }} />
               <YAxis domain={[0, 10]} tick={{ fontSize: 10, fill: "var(--muted-foreground)" }} />
               <Tooltip contentStyle={tooltipStyle} />
-              <Line type="monotone" dataKey="rpe" stroke="var(--chart-1)" strokeWidth={2} dot={{ r: 2 }} />
-              <Line type="monotone" dataKey="fatiga" stroke="var(--chart-2)" strokeWidth={2} dot={{ r: 2 }} />
+              <Line
+                type="monotone"
+                dataKey="rpe"
+                stroke="var(--chart-1)"
+                strokeWidth={2}
+                dot={{ r: 2 }}
+              />
+              <Line
+                type="monotone"
+                dataKey="fatiga"
+                stroke="var(--chart-2)"
+                strokeWidth={2}
+                dot={{ r: 2 }}
+              />
             </LineChart>
           </ResponsiveContainer>
         </section>
@@ -357,8 +361,8 @@ function HomeScreen({
               <XAxis dataKey="label" tick={{ fontSize: 10, fill: "var(--muted-foreground)" }} />
               <YAxis tick={{ fontSize: 10, fill: "var(--muted-foreground)" }} />
               <Tooltip contentStyle={tooltipStyle} />
-              <ReferenceLine y={400} stroke="var(--warning)" strokeDasharray="4 4" />
-              <ReferenceLine y={600} stroke="var(--danger)" strokeDasharray="4 4" />
+              <ReferenceLine y={optimo} stroke="var(--warning)" strokeDasharray="4 4" />
+              <ReferenceLine y={moderado} stroke="var(--danger)" strokeDasharray="4 4" />
               <Bar dataKey="ua" radius={[4, 4, 0, 0]}>
                 {history.map((d) => (
                   <Cell key={d.id} fill={statusColor(loadStatus(d.ua))} />
@@ -383,9 +387,7 @@ function HomeScreen({
                 >
                   <div>
                     <div className="font-medium">{h.label}</div>
-                    <div className="text-[10px] text-muted-foreground tabular-nums">
-                      {h.date}
-                    </div>
+                    <div className="text-[10px] text-muted-foreground tabular-nums">{h.date}</div>
                   </div>
                   <div className="flex items-center gap-3 tabular-nums">
                     <span>RPE {h.rpe}</span>
@@ -428,7 +430,10 @@ function Stat({
         {icon}
         {label}
       </div>
-      <div className="text-lg font-semibold tabular-nums mt-0.5" style={color ? { color } : undefined}>
+      <div
+        className="text-lg font-semibold tabular-nums mt-0.5"
+        style={color ? { color } : undefined}
+      >
         {value}
       </div>
     </div>
@@ -541,12 +546,7 @@ function Scale({
       <div className="grid grid-cols-10 gap-1.5">
         {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => {
           const active = value === n;
-          const tone =
-            n <= 3
-              ? "var(--success)"
-              : n <= 6
-                ? "var(--warning)"
-                : "var(--danger)";
+          const tone = n <= 3 ? "var(--success)" : n <= 6 ? "var(--warning)" : "var(--danger)";
           return (
             <button
               key={n}

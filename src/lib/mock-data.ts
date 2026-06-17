@@ -1,4 +1,5 @@
 // Mock data for the SE-FS load control MVP
+import { getLoadThresholds } from "./store";
 
 export type SessionType = "TEC-TAC" | "PARTIDO" | "LIBRE";
 
@@ -145,10 +146,8 @@ export const records: PlayerSessionRecord[] = (() => {
     const rand = seedRand(s.id.length * 31 + s.date.charCodeAt(8));
     for (const p of players) {
       // some randomness per player
-      const baseRpe =
-        s.type === "PARTIDO" ? 8 : s.type === "LIBRE" ? 3 : 5 + rand() * 2;
-      const baseFat =
-        s.type === "PARTIDO" ? 7 : s.type === "LIBRE" ? 2 : 4 + rand() * 2;
+      const baseRpe = s.type === "PARTIDO" ? 8 : s.type === "LIBRE" ? 3 : 5 + rand() * 2;
+      const baseFat = s.type === "PARTIDO" ? 7 : s.type === "LIBRE" ? 2 : 4 + rand() * 2;
       const rpe = Math.max(1, Math.min(10, Math.round(baseRpe + (rand() - 0.5) * 2)));
       const fatigue = Math.max(1, Math.min(10, Math.round(baseFat + (rand() - 0.5) * 2)));
       out.push({ sessionId: s.id, playerId: p.id, rpe, fatigue });
@@ -189,8 +188,9 @@ export function std(arr: number[]) {
 }
 
 export function loadStatus(uaValue: number): "optimo" | "moderado" | "riesgo" {
-  if (uaValue < 400) return "optimo";
-  if (uaValue < 600) return "moderado";
+  const { optimo, moderado } = getLoadThresholds();
+  if (uaValue < optimo) return "optimo";
+  if (uaValue < moderado) return "moderado";
   return "riesgo";
 }
 
@@ -201,9 +201,5 @@ export function acStatus(ratio: number): "optimo" | "moderado" | "riesgo" {
 }
 
 export function statusColor(s: "optimo" | "moderado" | "riesgo") {
-  return s === "optimo"
-    ? "var(--success)"
-    : s === "moderado"
-      ? "var(--warning)"
-      : "var(--danger)";
+  return s === "optimo" ? "var(--success)" : s === "moderado" ? "var(--warning)" : "var(--danger)";
 }

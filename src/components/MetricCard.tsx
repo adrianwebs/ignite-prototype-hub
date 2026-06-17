@@ -27,9 +27,7 @@ export function MetricCard({
         <span>{label}</span>
         {icon}
       </div>
-      <div className={`text-2xl font-semibold tabular-nums ${toneStyle}`}>
-        {value}
-      </div>
+      <div className={`text-2xl font-semibold tabular-nums ${toneStyle}`}>{value}</div>
       {hint && <div className="text-xs text-muted-foreground">{hint}</div>}
     </div>
   );
