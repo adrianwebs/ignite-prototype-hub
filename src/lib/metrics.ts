@@ -50,8 +50,12 @@ export interface SessionMetrics {
   rpeMedia: number;
   /** Fatiga × Tiempo (UA) using fatigue as the RPE proxy */
   fatigaXTiempo: number;
+  /** RPE × Tiempo (UA) */
+  rpeXTiempo: number;
   /** Per-player UA values (for heatmap etc.) */
   playerUA: Record<string, number>;
+  /** Per-player RPE workload (UA) values */
+  playerRpeUA: Record<string, number>;
   /** Per-player fatigue */
   playerFatigue: Record<string, number>;
   /** Per-player RPE */
@@ -130,6 +134,7 @@ export function calcSessionMetrics(
     const sessionIndex = daySessions.indexOf(s);
 
     const playerUA: Record<string, number> = {};
+    const playerRpeUA: Record<string, number> = {};
     const playerFatigue: Record<string, number> = {};
     const playerRPE: Record<string, number> = {};
 
@@ -159,6 +164,7 @@ export function calcSessionMetrics(
       playerFatigue[r.jugador] = r.fatigue;
       playerRPE[r.jugador] = r.rpe;
       playerUA[r.jugador] = r.fatigue * s.duration;
+      playerRpeUA[r.jugador] = r.rpe * s.duration;
     }
 
     const fatigues = matchedResponses.map((r) => r.fatigue);
@@ -166,6 +172,7 @@ export function calcSessionMetrics(
     const fatigaMedia = avg(fatigues);
     const rpeMedia = avg(rpes);
     const fatigaXTiempo = fatigaMedia * s.duration;
+    const rpeXTiempo = rpeMedia * s.duration;
 
     return {
       sessionId: s.id,
@@ -177,7 +184,9 @@ export function calcSessionMetrics(
       fatigaMedia: +fatigaMedia.toFixed(2),
       rpeMedia: +rpeMedia.toFixed(2),
       fatigaXTiempo: +fatigaXTiempo.toFixed(0),
+      rpeXTiempo: +rpeXTiempo.toFixed(0),
       playerUA,
+      playerRpeUA,
       playerFatigue,
       playerRPE,
     };

@@ -55,6 +55,7 @@ export interface CallUpDashboard {
   responses: FormResponse[];
   sessionMetrics: SessionMetrics[];
   acwrSeries: ReturnType<typeof calcACWRSeries>;
+  acwrSeriesRpe: ReturnType<typeof calcACWRSeries>;
   players: string[];
   playerMetrics: PlayerCallUpMetrics[];
   loading: boolean;
@@ -105,12 +106,41 @@ export function useCallUpDashboard(callUpId: string | undefined): CallUpDashboar
 
   // Métricas derivadas
   const sessionMetrics = calcSessionMetrics(sessions, responses);
+
   const teamUASeries = sessionMetrics.map((sm) => ({ date: sm.date, ua: sm.fatigaXTiempo }));
   const acwrSeries = calcACWRSeries(teamUASeries);
+
+  const teamRpeUASeries = sessionMetrics.map((sm) => ({ date: sm.date, ua: sm.rpeXTiempo }));
+  const acwrSeriesRpe = calcACWRSeries(teamRpeUASeries);
+
   const uniquePlayers = Array.from(new Set(responses.map((r) => r.jugador))).sort();
   const playerMetrics = uniquePlayers.map((jugador) =>
     calcPlayerCallUpMetrics(jugador, sessions, responses),
   );
+
+  const updateResponseLocally = useCallback((jugador: string, fecha: string, fatigue: number | null, rpe: number | null) => {
+    setResponses((prev) => {
+      const idx = prev.findIndex((r) => r.jugador.trim().toUpperCase() === jugador.trim().toUpperCase() && r.fecha === fecha);
+      if (fatigue === null || rpe === null) {
+        if (idx !== -1) {
+          return prev.filter((_, i) => i !== idx);
+        }
+        return prev;
+      } else {
+        if (idx !== -1) {
+          return prev.map((r, i) => i === idx ? { ...r, fatigue, rpe } : r);
+        } else {
+          return [...prev, { timestamp: new Date().toISOString(), jugador, fatigue, rpe, fecha }];
+        }
+      }
+    });
+  }, []);
+
+  const updateSessionLocally = useCallback((sessionId: string, duration: number) => {
+    setSessions((prev) =>
+      prev.map((s) => (s.id === sessionId ? { ...s, duration } : s))
+    );
+  }, []);
 
   return {
     callUp,
@@ -118,10 +148,13 @@ export function useCallUpDashboard(callUpId: string | undefined): CallUpDashboar
     responses,
     sessionMetrics,
     acwrSeries,
+    acwrSeriesRpe,
     players: uniquePlayers,
     playerMetrics,
     loading,
     error,
     refresh: () => load(true),
+    updateResponseLocally,
+    updateSessionLocally,
   };
 }

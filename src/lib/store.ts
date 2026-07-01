@@ -202,6 +202,22 @@ export async function updateSession(session: StoredSession): Promise<void> {
   });
 }
 
+export async function savePlayerResponse(data: {
+  jugador: string;
+  fecha: string;
+  fatigue: number;
+  rpe: number;
+}): Promise<void> {
+  await apiPost("upsert", "response", data);
+}
+
+export async function deletePlayerResponse(data: {
+  jugador: string;
+  fecha: string;
+}): Promise<void> {
+  await apiPost("delete", "response", { jugador: data.jugador, fecha: data.fecha });
+}
+
 
 /** Human-readable label for a session */
 export function sessionLabel(s: StoredSession): string {
