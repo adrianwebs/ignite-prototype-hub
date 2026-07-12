@@ -23,8 +23,18 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { AlertTriangle, Download, RefreshCw, Plus, Trash2, Loader2, Users, Pencil, Check, X, Copy } from "lucide-react";
-import { toBlob } from "html-to-image";
+import { toBlob, toPng } from "html-to-image";
 import { toast } from "sonner";
+import { jsPDF } from "jspdf";
+import { PlayerReportPDF } from "@/components/PlayerReportPDF";
+import { players as allPlayers } from "@/lib/mock-data";
+
+const normalizeName = (name: string) =>
+  name
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim()
+    .toUpperCase();
 
 type Tab = "resumen" | "sesiones" | "fatiga" | "carga" | "jugadores";
 
@@ -41,6 +51,7 @@ export default function ConvocatoriaPage() {
   const {
     callUp,
     sessions,
+    responses,
     sessionMetrics,
     acwrSeries,
     acwrSeriesRpe,
@@ -56,6 +67,8 @@ export default function ConvocatoriaPage() {
   const [sessionRefreshKey, setSessionRefreshKey] = useState(0);
   const [selectedPlayers, setSelectedPlayers] = useState<string[]>([]);
   const { optimo, moderado } = getLoadThresholds();
+  const [exportingPlayer, setExportingPlayer] = useState<string | null>(null);
+  const [isBulkExporting, setIsBulkExporting] = useState(false);
 
   useEffect(() => {
     document.title = callUp ? `${callUp.name} · SE-FS Load` : "Convocatoria · SE-FS Load";
@@ -64,6 +77,87 @@ export default function ConvocatoriaPage() {
   function refreshAll() {
     refresh();
     setSessionRefreshKey((k) => k + 1);
+  }
+
+  async function generatePlayerPDF(playerName: string): Promise<void> {
+    setExportingPlayer(playerName);
+    // Wait for Recharts SVG to render with animations disabled
+    await new Promise((resolve) => setTimeout(resolve, 500));
+
+    const elementId = `pdf-report-${playerName.replace(/\s+/g, "-")}`;
+    const el = document.getElementById(elementId);
+    if (!el) {
+      toast.error(`No se encontró el contenedor de reporte para ${playerName}`);
+      setExportingPlayer(null);
+      return;
+    }
+
+    try {
+      const dataUrl = await toPng(el, {
+        backgroundColor: "#ffffff",
+        style: {
+          transform: "scale(1)",
+          transformOrigin: "top left",
+        },
+        cacheBust: true,
+      });
+
+      const pdf = new jsPDF("p", "mm", "a4");
+      const imgWidth = 210;
+      const pageHeight = 297;
+      
+      const imgHeight = (el.offsetHeight * imgWidth) / el.offsetWidth;
+      let heightLeft = imgHeight;
+      let position = 0;
+
+      pdf.addImage(dataUrl, "PNG", 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+
+      while (heightLeft >= 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(dataUrl, "PNG", 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+
+      pdf.save(`Reporte_Carga_${playerName.replace(/\s+/g, "_")}_${callUp?.name.replace(/\s+/g, "_")}.pdf`);
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+      toast.error(`Error al generar el PDF de ${playerName}`);
+      throw error;
+    } finally {
+      setExportingPlayer(null);
+    }
+  }
+
+  async function handleBulkExport() {
+    setIsBulkExporting(true);
+    const targetPlayers = selectedPlayers.length === 0 ? players : selectedPlayers;
+    
+    if (targetPlayers.length === 0) {
+      toast.error("No hay jugadores para exportar");
+      setIsBulkExporting(false);
+      return;
+    }
+
+    const toastId = toast.loading(`Generando reportes PDF: 0 de ${targetPlayers.length}...`);
+
+    try {
+      for (let i = 0; i < targetPlayers.length; i++) {
+        const pName = targetPlayers[i];
+        toast.loading(`Generando reporte de ${pName} (${i + 1}/${targetPlayers.length})...`, { id: toastId });
+        await generatePlayerPDF(pName);
+        // Delay to prevent concurrent download issues
+        await new Promise((r) => setTimeout(r, 700));
+      }
+      toast.success("¡Todos los reportes PDF han sido generados con éxito!", { id: toastId });
+    } catch (err) {
+      console.error("Bulk export error:", err);
+      toast.error("Hubo un error durante la exportación masiva", { id: toastId });
+    } finally {
+      setIsBulkExporting(false);
+      setExportingPlayer(null);
+    }
   }
 
   // ─── Filter logic ────────────────────────────────────────────────────────
@@ -141,6 +235,25 @@ export default function ConvocatoriaPage() {
                 onChange={setSelectedPlayers}
               />
             )}
+            {players.length > 0 && (
+              <button
+                onClick={handleBulkExport}
+                disabled={isBulkExporting || exportingPlayer !== null}
+                className="text-xs flex items-center gap-1.5 px-3 py-2 rounded-md bg-primary text-primary-foreground font-medium hover:opacity-90 disabled:opacity-50 cursor-pointer"
+                title="Exportar reportes PDF de jugadores"
+              >
+                {isBulkExporting ? (
+                  <Loader2 className="size-3.5 animate-spin" />
+                ) : (
+                  <Download className="size-3.5" />
+                )}
+                <span>
+                  {selectedPlayers.length > 0
+                    ? `Exportar PDFs (${selectedPlayers.length})`
+                    : "Exportar PDFs (Todos)"}
+                </span>
+              </button>
+            )}
             {callUp && (
               <EditarConvocatoriaDialog callUp={callUp} onUpdated={refreshAll} />
             )}
@@ -216,11 +329,29 @@ export default function ConvocatoriaPage() {
               />
             )}
             {tab === "jugadores" && (
-              <JugadoresTab players={players} playerMetrics={playerMetrics} sessions={sessions} />
+              <JugadoresTab
+                players={players}
+                playerMetrics={filteredPlayerMetrics}
+                sessions={sessions}
+                onExportPDF={generatePlayerPDF}
+                exportingPlayer={exportingPlayer}
+                isDisabled={isBulkExporting || exportingPlayer !== null}
+              />
             )}
           </>
         )}
       </div>
+      {exportingPlayer && callUp && (
+        <PlayerReportPDF
+          jugador={exportingPlayer}
+          callUp={callUp}
+          sessions={sessions}
+          responses={responses}
+          optimo={optimo}
+          moderado={moderado}
+          containerId={`pdf-report-${exportingPlayer.replace(/\s+/g, "-")}`}
+        />
+      )}
     </AppLayout>
   );
 }
@@ -983,10 +1114,20 @@ function ControlCargaTab({ sessionMetrics, acwrSeries }: {
 
 // ─── Jugadores tab ────────────────────────────────────────────────────────────
 
-function JugadoresTab({ players, playerMetrics, sessions }: {
+function JugadoresTab({
+  players,
+  playerMetrics,
+  sessions,
+  onExportPDF,
+  exportingPlayer,
+  isDisabled,
+}: {
   players: string[];
   playerMetrics: ReturnType<typeof useCallUpDashboard>["playerMetrics"];
   sessions: StoredSession[];
+  onExportPDF: (playerName: string) => Promise<void>;
+  exportingPlayer: string | null;
+  isDisabled: boolean;
 }) {
   if (players.length === 0) {
     return (
@@ -998,36 +1139,98 @@ function JugadoresTab({ players, playerMetrics, sessions }: {
 
   return (
     <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h3 className="text-sm font-medium">Plantilla de Jugadores</h3>
+      </div>
+
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
         {playerMetrics.map((p) => (
-          <PlayerCard key={p.jugador} metrics={p} />
+          <PlayerCard
+            key={p.jugador}
+            metrics={p}
+            onExportPDF={onExportPDF}
+            isExporting={exportingPlayer === p.jugador}
+            isDisabled={isDisabled}
+          />
         ))}
       </div>
     </div>
   );
 }
 
-function PlayerCard({ metrics: p }: { metrics: ReturnType<typeof useCallUpDashboard>["playerMetrics"][number] }) {
+function PlayerCard({
+  metrics: p,
+  onExportPDF,
+  isExporting,
+  isDisabled,
+}: {
+  metrics: ReturnType<typeof useCallUpDashboard>["playerMetrics"][number];
+  onExportPDF: (playerName: string) => Promise<void>;
+  isExporting: boolean;
+  isDisabled: boolean;
+}) {
   const acwrSt = acwrStatus(p.ratioACWR);
   const uaSt = uaStatus(p.uaMax);
   const worst = acwrSt === "riesgo" || uaSt === "riesgo" ? "riesgo" : acwrSt === "moderado" || uaSt === "moderado" ? "moderado" : "optimo";
 
+  const dbPlayer = allPlayers.find(
+    (x) => normalizeName(x.name) === normalizeName(p.jugador)
+  );
+
+  const { id: callUpId } = useParams<{ id: string }>();
+
   return (
-    <div className="rounded-lg border bg-card p-4">
-      <div className="flex items-center justify-between mb-3">
-        <div>
-          <div className="text-sm font-medium">{p.jugador}</div>
-          <div className="text-[11px] text-muted-foreground">{p.responseCount} respuestas</div>
+    <div className="rounded-lg border bg-card p-4 flex flex-col justify-between h-full">
+      <div>
+        <div className="flex items-center justify-between mb-3">
+          <div>
+            {dbPlayer ? (
+              <Link
+                to={`/convocatorias/${callUpId}/jugador/${dbPlayer.id}`}
+                className="text-sm font-medium hover:underline text-foreground flex items-center gap-1.5"
+              >
+                <span>{p.jugador}</span>
+                <span className="text-[10px] text-muted-foreground font-normal">({dbPlayer.position})</span>
+              </Link>
+            ) : (
+              <div className="text-sm font-medium">{p.jugador}</div>
+            )}
+            <div className="text-[11px] text-muted-foreground">{p.responseCount} respuestas</div>
+          </div>
+          <span className="size-2.5 rounded-full shrink-0" style={{ background: statusColor(worst) }} />
         </div>
-        <span className="size-2.5 rounded-full" style={{ background: statusColor(worst) }} />
+        <div className="grid grid-cols-2 gap-x-2 gap-y-1.5 text-xs mb-4">
+          <MiniStat label="Fatiga media" value={p.fatigaMedia.toFixed(1)} />
+          <MiniStat label="RPE medio" value={p.rpeMedia.toFixed(1)} />
+          <MiniStat label="UA total" value={Math.round(p.uaTotal).toLocaleString()} />
+          <MiniStat label="UA máx" value={p.uaMax.toLocaleString()} color={statusColor(uaSt)} />
+          <MiniStat label="Monotonía" value={p.indiceDeMonotonia.toFixed(2)} />
+          <MiniStat label="ACWR" value={p.ratioACWR.toFixed(2)} color={statusColor(acwrSt)} />
+        </div>
       </div>
-      <div className="grid grid-cols-2 gap-2 text-xs">
-        <MiniStat label="Fatiga media" value={p.fatigaMedia.toFixed(1)} />
-        <MiniStat label="RPE medio" value={p.rpeMedia.toFixed(1)} />
-        <MiniStat label="UA total" value={Math.round(p.uaTotal).toLocaleString()} />
-        <MiniStat label="UA máx" value={p.uaMax.toLocaleString()} color={statusColor(uaSt)} />
-        <MiniStat label="Monotonía" value={p.indiceDeMonotonia.toFixed(2)} />
-        <MiniStat label="ACWR" value={p.ratioACWR.toFixed(2)} color={statusColor(acwrSt)} />
+      <div className="border-t pt-3 flex items-center justify-between mt-auto">
+        {dbPlayer ? (
+          <Link
+            to={`/convocatorias/${callUpId}/jugador/${dbPlayer.id}`}
+            className="text-[11px] text-primary hover:underline font-medium"
+          >
+            Ver Detalles
+          </Link>
+        ) : (
+          <span className="text-[11px] text-muted-foreground">Detalles N/A</span>
+        )}
+        <button
+          onClick={() => onExportPDF(p.jugador)}
+          disabled={isDisabled}
+          className="text-[11px] flex items-center gap-1 px-2.5 py-1.5 rounded-md border border-border bg-secondary hover:bg-muted/30 text-foreground transition-all disabled:opacity-50 cursor-pointer font-medium"
+        >
+          {isExporting ? (
+            <Loader2 className="size-3 animate-spin text-primary" />
+          ) : (
+            <Download className="size-3" />
+          )}
+          <span>PDF</span>
+        </button>
       </div>
     </div>
   );
