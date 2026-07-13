@@ -1919,45 +1919,48 @@ function CopyPNGButton({ targetId }: { targetId: string }) {
 
     setState("loading");
 
-    const promise = new Promise<void>(async (resolve, reject) => {
-      try {
-        await new Promise((r) => setTimeout(r, 150));
+    // Safari requires navigator.clipboard.write to be called synchronously within a user gesture.
+    // To do this, we pass a Promise resolving to the Blob directly to ClipboardItem.
+    const blobPromise = (async () => {
+      // Small delay to allow the UI to update to "loading" state
+      await new Promise((r) => setTimeout(r, 150));
 
-        const blob = await toBlob(el, {
-          backgroundColor: "oklch(0.22 0.05 265)", // Matches var(--card) background
-          style: {
-            borderRadius: "0.625rem",
-            padding: el.tagName === "TABLE" ? "16px" : undefined,
-          },
-          filter: (node) => {
-            if (node instanceof HTMLElement && node.classList.contains("no-export")) {
-              return false;
-            }
-            return true;
-          },
-          cacheBust: true,
-        });
+      const blob = await toBlob(el, {
+        backgroundColor: "oklch(0.22 0.05 265)", // Matches var(--card) background
+        style: {
+          borderRadius: "0.625rem",
+          padding: el.tagName === "TABLE" ? "16px" : undefined,
+        },
+        filter: (node) => {
+          if (node instanceof HTMLElement && node.classList.contains("no-export")) {
+            return false;
+          }
+          return true;
+        },
+        cacheBust: true,
+      });
 
-        if (!blob) {
-          throw new Error("No se pudo generar la imagen");
-        }
+      if (!blob) {
+        throw new Error("No se pudo generar la imagen");
+      }
+      return blob;
+    })();
 
-        await navigator.clipboard.write([
-          new ClipboardItem({
-            [blob.type]: blob
-          })
-        ]);
+    const clipboardItem = new ClipboardItem({
+      "image/png": blobPromise,
+    });
 
+    const promise = navigator.clipboard.write([clipboardItem])
+      .then(() => {
         setState("success");
         setTimeout(() => setState("idle"), 2000);
-        resolve();
-      } catch (err) {
+      })
+      .catch((err) => {
         console.error(err);
         setState("error");
         setTimeout(() => setState("idle"), 2000);
-        reject(err);
-      }
-    });
+        throw err;
+      });
 
     toast.promise(promise, {
       loading: "Generando imagen...",
