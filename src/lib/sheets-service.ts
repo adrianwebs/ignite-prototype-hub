@@ -11,6 +11,7 @@
  */
 
 import { parseToIsoDate } from "./date-utils";
+import { getSheetsCsvUrl } from "./config";
 
 export interface FormResponse {
   timestamp: string;  // raw "Marca temporal"
@@ -19,10 +20,6 @@ export interface FormResponse {
   rpe: number;        // 1-10
   fecha: string;      // ISO date yyyy-mm-dd
 }
-
-// Published CSV URL — same spreadsheet ID, output=csv
-const SHEET_CSV_URL =
-  "https://docs.google.com/spreadsheets/d/e/2PACX-1vRa4rE-Hzk6fKAGlZmxPna-uKQfv-ufd9yxP3U3EmtHWzeuxBDVCyjNTMxJWurqY9JXxDN2zWznbr8C/pub?gid=0&single=true&output=csv";
 
 // In-memory cache
 let _cache: FormResponse[] | null = null;
@@ -106,12 +103,13 @@ function splitCsvLine(line: string): string[] {
  */
 export async function fetchFormResponses(forceRefresh = false): Promise<FormResponse[]> {
   const now = Date.now();
+  const url = getSheetsCsvUrl();
   if (!forceRefresh && _cache && now - _cacheAt < CACHE_TTL_MS) {
     return _cache;
   }
 
   try {
-    const res = await fetch(SHEET_CSV_URL, { cache: "no-cache" });
+    const res = await fetch(url, { cache: "no-cache" });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const text = await res.text();
     _cache = parseCsv(text);

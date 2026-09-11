@@ -7,9 +7,7 @@
  */
 
 import { parseToIsoDate, formatDateShort } from "./date-utils";
-
-// ─── ⚙️  Configuración ────────────────────────────────────────────────────────
-export const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx1f2Jb6pRXlNdmUmytWziqB_-LPJ_d5nJGGjHwSAUjmZbVULKR62QmRMv9tejhwWUBrg/exec";
+import { getAppsScriptUrl } from "./config";
 // ─────────────────────────────────────────────────────────────────────────────
 
 // ─── ⚙️ Umbrales de carga ─────────────────────────────────────────────────────
@@ -94,7 +92,7 @@ function uid(): string {
 }
 
 async function apiGet(): Promise<{ callUps: StoredCallUp[]; sessions: StoredSession[] }> {
-  const res = await fetch(APPS_SCRIPT_URL, { cache: "no-cache" });
+  const res = await fetch(getAppsScriptUrl(), { cache: "no-cache" });
   if (!res.ok) throw new Error(`Apps Script GET falló: HTTP ${res.status}`);
   const data = await res.json();
 
@@ -123,8 +121,8 @@ async function apiGet(): Promise<{ callUps: StoredCallUp[]; sessions: StoredSess
   return { callUps, sessions };
 }
 
-async function apiPost(action: "upsert" | "delete", entity: "callup" | "session", data: object) {
-  const res = await fetch(APPS_SCRIPT_URL, {
+async function apiPost(action: "upsert" | "delete", entity: "callup" | "session" | "response", data: object) {
+  const res = await fetch(getAppsScriptUrl(), {
     method: "POST",
     body: JSON.stringify({ action, entity, data }),
   });
